@@ -121,6 +121,38 @@ app.get('/health', (req, res) => {
     res.json({ ok: true, botCount: bots.length });
 });
 
+// 出口 IP 自查：启动时查一次本机出口 IP（确认部署环境的 IP 归属与类型），失败不影响 bot 运行
+const https = require('https');
+let egressIpInfo = null;
+function fetchEgressIp() {
+    return new Promise((resolve) => {
+        const req = https.get('https://ip-api.com/json/?fields=status,message,query,country,countryCode,regionName,city,isp,org,as,hosting,proxy,mobile', { timeout: 10000 }, (res) => {
+            let data = '';
+            res.on('data', (c) => { data += c; });
+            res.on('end', () => {
+                try {
+                    const j = JSON.parse(data);
+                    if (j.status === 'success') {
+                        egressIpInfo = j;
+                        console.log('[出口IP]', j.query, j.country, j.regionName, j.city, '| ISP:', j.isp, '| 机房:', j.hosting, '代理:', j.proxy, '|', j.as);
+                    } else {
+                        console.log('[出口IP] 查询失败:', j.message || data);
+                    }
+                } catch (e) { console.log('[出口IP] 解析失败:', e.message); }
+                resolve();
+            });
+        });
+        req.on('timeout', () => { req.destroy(); console.log('[出口IP] 查询超时'); resolve(); });
+        req.on('error', (e) => { console.log('[出口IP] 查询出错:', e.message); resolve(); });
+    });
+}
+fetchEgressIp();
+
+app.get('/ip', (req, res) => {
+    if (egressIpInfo) return res.json(egressIpInfo);
+    res.json({ status: 'pending', message: '出口 IP 查询中，稍后刷新重试' });
+});
+
 app.listen(PORT, '0.0.0.0', () => console.log(`网页服务已成功绑定端口: ${PORT}`));
 
 /**
