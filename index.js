@@ -121,44 +121,6 @@ app.get('/health', (req, res) => {
     res.json({ ok: true, botCount: bots.length });
 });
 
-// 出口 IP 自查：启动时查一次本机出口 IP（确认部署环境的 IP 归属与类型），失败不影响 bot 运行
-// 注意：ip-api.com 免费版不支持 HTTPS，必须用 http://，否则会报 "SSL unavailable for this endpoint"
-const http = require('http');
-let egressIpInfo = null;
-let egressIpFetching = false;
-function fetchEgressIp() {
-    if (egressIpFetching) return Promise.resolve();
-    egressIpFetching = true;
-    return new Promise((resolve) => {
-        const req = http.get('http://ip-api.com/json/?fields=status,message,query,country,countryCode,regionName,city,isp,org,as,hosting,proxy,mobile', { timeout: 10000 }, (res) => {
-            let data = '';
-            res.on('data', (c) => { data += c; });
-            res.on('end', () => {
-                try {
-                    const j = JSON.parse(data);
-                    if (j.status === 'success') {
-                        egressIpInfo = j;
-                        console.log('[出口IP]', j.query, j.country, j.regionName, j.city, '| ISP:', j.isp, '| 机房:', j.hosting, '代理:', j.proxy, '|', j.as);
-                    } else {
-                        console.log('[出口IP] 查询失败:', j.message || data);
-                    }
-                } catch (e) { console.log('[出口IP] 解析失败:', e.message); }
-                egressIpFetching = false;
-                resolve();
-            });
-        });
-        req.on('timeout', () => { req.destroy(); console.log('[出口IP] 查询超时'); egressIpFetching = false; resolve(); });
-        req.on('error', (e) => { console.log('[出口IP] 查询出错:', e.message); egressIpFetching = false; resolve(); });
-    });
-}
-fetchEgressIp();
-
-app.get('/ip', (req, res) => {
-    if (egressIpInfo) return res.json(egressIpInfo);
-    fetchEgressIp(); // 之前没查到时，访问 /ip 会再试一次
-    res.json({ status: 'pending', message: '出口 IP 查询中，稍后刷新重试' });
-});
-
 app.listen(PORT, '0.0.0.0', () => console.log(`网页服务已成功绑定端口: ${PORT}`));
 
 /**
