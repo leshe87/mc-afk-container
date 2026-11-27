@@ -140,7 +140,7 @@ const HARDCODED_BOTS = [
     {
         id: 'falixbbb',
         host: 'falixbbb.falixsrv.me',
-        port: 20015,
+        port: 21813,
         username: 'falixbbb',
         version: '1.21.11',
         auth: 'offline'
