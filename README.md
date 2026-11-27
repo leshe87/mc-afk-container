@@ -16,7 +16,7 @@ GitHub 账号 paowuer87 被暂停，仓库 mc-afk-container 线上打不开，�
 ## 内容
 
 - `index.js` — Express + mineflayer 多账号 AFK 机器人（逐字恢复，已过 `node --check`）
-  - 2 个 bot：falixaaa @ qawqaw.falixsrv.me:25618、falixbbb @ falixbbb.falixsrv.me:20015
+  - 2 个 bot：falixaaa @ qawqaw.falixsrv.me:25618、falixbbb @ falixbbb.falixsrv.me:21813
   - 版本 1.21.11，`auth: 'offline'`；旧版 minecraft-data 没有 1.21.11 时用 1.21.4 垫片
   - 配置优先级：环境变量 `MC_BOTS`（JSON）> 旧版单账号变量 > `HARDCODED_BOTS`
   - 网页状态：`/` 看各 bot 在线状态，`/health` 看数量；18~22 秒做一次防挂机动作
